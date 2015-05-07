@@ -20,7 +20,7 @@ Or install it yourself as:
 ## Usage
 
 
-	require 'analytics-charts'
+	require 'analytics_charts'
 	g = AnalyticsCharts::CustomPie.new('./yourImage.png')
 	hash = {
 	      'fill' => 'blue',
