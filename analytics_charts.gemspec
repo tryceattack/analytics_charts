@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
     more fined-tuned data rendering and the need for more lightweight code, I branched out to
     this new library. Source for original code of gruff library.
   https://github.com/topfunky/gruff/}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/tryceattack/analytics_charts"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
