@@ -5,17 +5,30 @@ class AnalyticsCharts::CustomPie
   attr_accessor :pie_center_x
   attr_accessor :pie_center_y
   attr_accessor :pie_radius
-
-  def initialize(image_path)
+  attr_accessor :label_hash
+  attr_accessor :pie_label_hash
+  attr_accessor :label_start_x
+  attr_accessor :label_start_y
+  attr_accessor :label_offset
+  def initialize(image_path, label_hash, pie_label_hash)
     @base_image = Image.read(image_path)[0]
     @d = Draw.new
     @data = Hash.new # Value is array with two items
     @aggregate = Array([0,0,0,0]) # Cluster brands into categories
     @columns = @base_image.columns
     @rows = @base_image.rows
+    @label_hash = Hash.new
+    @pie_label_hash = Hash.new
+    @label_hash = label_hash if label_hash
+    @pie_label_hash = pie_label_hash if pie_label_hash
     set_pie_colors(%w(#AD1F25 #BE6428 #C1B630 #1E753B))
   end
 
+  def set_label_values(label_start_x, label_start_y, label_offset)
+    @label_start_x = label_start_x
+    @label_start_y = label_start_y
+    @label_offset = label_offset
+  end
   def set_pie_geometry(x, y, radius)
     @pie_center_x = x
     @pie_center_y = y
@@ -130,35 +143,42 @@ class AnalyticsCharts::CustomPie
   end
 
   def draw_labels
-    @d.pointsize = 56
     @d.align = LeftAlign
     sorted_data = @data.sort_by{|key,value| -value[1]} # Sort by descending quality
-    x_offset = 180 #HARD CODED, fix later
-    y_offset = 440 #HARD CODED
+    x_offset = @label_start_x
+    y_offset = @label_start_y
     for data in sorted_data
       if data[1][0] > 0 # Amount > 0
         font_weight = 900 # Very Bold
         text = data[0] + ' <--'
       else
         text = data[0]
-        font_weight = 900 # Normal
+        font_weight = 900 # Very Bold
       end
       case data[1][1]
         when 3
-          insert_text(x_offset, y_offset, text, {'fill'=> '#1E753B', 'font_weight'=> font_weight })
+          # label_hash gets merged and overrided by fill and font_weight.
+          insert_text(x_offset, y_offset, text,
+            @label_hash.merge({'fill'=> '#1E753B', 'font_weight'=> font_weight }))
         when 2
-          insert_text(x_offset, y_offset, text, {'fill'=> '#C1B630', 'font_weight'=> font_weight })
+          insert_text(x_offset, y_offset, text,
+            @label_hash.merge({'fill'=> '#C1B630', 'font_weight'=> font_weight }))
         when 1
-          insert_text(x_offset, y_offset, text, {'fill'=> '#BE6428', 'font_weight'=> font_weight })
+          insert_text(x_offset, y_offset, text,
+           @label_hash.merge({'fill'=> '#BE6428', 'font_weight'=> font_weight }))
         when 0
-          insert_text(x_offset, y_offset, text, {'fill'=> '#AD1F25', 'font_weight'=> font_weight })
+          insert_text(x_offset, y_offset, text,
+            @label_hash.merge({'fill'=> '#AD1F25', 'font_weight'=> font_weight }))
       end
-      y_offset += 60 #HARD CODED, fix later
+      y_offset += @label_offset
     end
   end
 
   def draw_pie_label(center_x, center_y, angle, radius, percent)
-    @d.pointsize = 56 #HARD CODED, fix later
+    #気を付けて、get_type_metrics depends on font and pointsize, image res so need to set those first
+    # See more at http://studio.imagemagick.org/RMagick/doc/draw.html#get_type_metrics
+    @d.font = @pie_label_hash['font'] if @pie_label_hash['font']
+    @d.pointsize = @pie_label_hash['pointsize'] if @pie_label_hash['pointsize']
     width = @d.get_type_metrics(@base_image, percent.to_s).width
     ascent =  @d.get_type_metrics(@base_image, percent.to_s).ascent
     descent =  @d.get_type_metrics(@base_image, percent.to_s).descent
@@ -181,31 +201,36 @@ class AnalyticsCharts::CustomPie
       y -= (ascent / 2.0 - descent) # descent to account for '$' descent,
       # descent value retrieved is negative, so sub instead of add
     end
-
     @d.align = CenterAlign
-    insert_text(x, y, percent, {'fill'=> 'black', 'font_weight'=> 700})
+    # Provide default fill of black
+    insert_text(x, y, percent, {'fill'=> 'black'}.merge(@pie_label_hash))# {'fill'=> 'black', 'font_weight'=> 700, 'pointsize'=>48})
   end
 
   def set_feature(feature, attribute)
-    case feature
-      when 'fill'
-        @d.fill = attribute
-      when 'font'
-        @d.font = attribute
-      when 'font_family'
-        @d.font_family = attribute
-      when 'font_stretch'
-        @d.font_stretch = attribute
-      when 'font_style'
-        @d.font_style = attribute
-      when 'font_weight'
-        @d.font_weight = attribute
-      when 'stroke'
-        @d.stroke = attribute
-      when 'pointsize'
-        @d.pointsize = attribute
-      when 'text_undercolor'
-        @d.undercolor = attribute
+    begin
+      case feature
+        when 'fill'
+          @d.fill = attribute
+        when 'font'
+          @d.font = attribute
+        when 'font_family'
+          @d.font_family = attribute
+        when 'font_stretch'
+          @d.font_stretch = attribute
+        when 'font_style'
+          @d.font_style = attribute
+        when 'font_weight'
+          @d.font_weight = attribute
+        when 'stroke'
+          @d.stroke = attribute
+        when 'pointsize'
+          @d.pointsize = attribute
+        when 'text_undercolor'
+          @d.undercolor = attribute
+      end
+    rescue
+      puts "Tried to set #{feature} to #{attribute}"
+      puts $!, $@
     end
   end
 end
