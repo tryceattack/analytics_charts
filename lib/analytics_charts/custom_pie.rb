@@ -129,7 +129,7 @@ class AnalyticsCharts::CustomPie
         half_angle = prev_degrees + degrees[i] / 2
         label_string = '$' + data_row.to_s
         draw_pie_label(@pie_center_x,@pie_center_y, half_angle + label_offset_degrees[i],
-          @pie_radius, label_string)
+          @pie_radius, label_string, i)
         prev_degrees += degrees[i]
       end
       @d.draw(@base_image)
@@ -174,7 +174,7 @@ class AnalyticsCharts::CustomPie
     end
   end
 
-  def draw_pie_label(center_x, center_y, angle, radius, percent)
+  def draw_pie_label(center_x, center_y, angle, radius, percent, index)
     #気を付けて、get_type_metrics depends on font and pointsize, image res so need to set those first
     # See more at http://studio.imagemagick.org/RMagick/doc/draw.html#get_type_metrics
     @d.font = @pie_label_hash['font'] if @pie_label_hash['font']
@@ -203,7 +203,7 @@ class AnalyticsCharts::CustomPie
     end
     @d.align = CenterAlign
     # Provide default fill of black
-    insert_text(x, y, percent, {'fill'=> 'black'}.merge(@pie_label_hash))# {'fill'=> 'black', 'font_weight'=> 700, 'pointsize'=>48})
+    insert_text(x, y, percent, {'fill'=> @colors[index]}.merge(@pie_label_hash))# {'fill'=> 'black', 'font_weight'=> 700, 'pointsize'=>48})
   end
 
   def set_feature(feature, attribute)
