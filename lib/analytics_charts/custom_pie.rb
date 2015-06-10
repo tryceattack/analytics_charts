@@ -12,11 +12,11 @@ class AnalyticsCharts::CustomPie
   attr_accessor :label_offset
   def initialize(image_path, label_hash, pie_label_hash)
     @base_image = Image.read(image_path)[0]
+    @columns = @base_image.columns
+    @rows = @base_image.rows
     @d = Draw.new
     @data = Hash.new # Value is array with two items
     @aggregate = Array([0,0,0,0]) # Cluster brands into categories
-    @columns = @base_image.columns
-    @rows = @base_image.rows
     @label_hash = Hash.new
     @pie_label_hash = Hash.new
     @label_hash = label_hash if label_hash
@@ -56,7 +56,6 @@ class AnalyticsCharts::CustomPie
 
   def draw
     if @data.size > 0
-      @d = Draw.new
       @d.stroke_width(@pie_radius)
       total_sum = 0.0
       prev_degrees = 60.0
@@ -175,13 +174,13 @@ class AnalyticsCharts::CustomPie
   end
 
   def draw_pie_label(center_x, center_y, angle, radius, percent, index)
-    #気を付けて、get_type_metrics depends on font and pointsize, image res so need to set those first
+    #気を付けて、get_type_metrics depends on font and pointsize, image res, AND font_weight so need to set those first
     # See more at http://studio.imagemagick.org/RMagick/doc/draw.html#get_type_metrics
     @d.font = @pie_label_hash['font'] if @pie_label_hash['font']
     @d.pointsize = @pie_label_hash['pointsize'] if @pie_label_hash['pointsize']
-    width = @d.get_type_metrics(@base_image, percent.to_s).width
     ascent =  @d.get_type_metrics(@base_image, percent.to_s).ascent
     descent =  @d.get_type_metrics(@base_image, percent.to_s).descent
+    width = @d.get_type_metrics(@base_image, percent.to_s).width
     radians = angle * Math::PI / 180.0
     x = center_x +  radius * Math.cos(radians)
     # By default, text is centered at bottom, so need to shift vertically to center it
@@ -202,6 +201,7 @@ class AnalyticsCharts::CustomPie
       # descent value retrieved is negative, so sub instead of add
     end
     @d.align = CenterAlign
+
     # Provide default fill of black
     insert_text(x, y, percent, {'fill'=> @colors[index]}.merge(@pie_label_hash))# {'fill'=> 'black', 'font_weight'=> 700, 'pointsize'=>48})
   end
