@@ -21,7 +21,7 @@ class AnalyticsCharts::CustomPie
     @pie_label_hash = Hash.new
     @label_hash = label_hash if label_hash
     @pie_label_hash = pie_label_hash if pie_label_hash
-    set_pie_colors(%w(#AD1F25 #BE6428 #C1B630 #1E753B))
+    set_pie_colors(%w(#AD1F25 #BE6428 #C1B630 #1E753B #000000))
   end
 
   def set_label_values(label_start_x, label_start_y, label_offset)
@@ -56,12 +56,32 @@ class AnalyticsCharts::CustomPie
   end
 
   def draw
+    total_sum = @aggregate.inject(:+) + 0.0 # Sum elements and make it a float
+    if total_sum == 0
+      @d.stroke_width(@pie_radius)
+      @d = @d.stroke "#FFFFFF"
+      @d = @d.ellipse(@pie_center_x, @pie_center_y,
+                  @pie_radius / 2.0 , @pie_radius / 2.0,
+                  0, 360) # <= +0.5 'fudge factor' gets rid of the ugly gaps
+      @d = @d.stroke "#000000"
+      @d.stroke_width(5)
+      @d = @d.line(@pie_center_x-30,@pie_center_y-30,@pie_center_x-14,@pie_center_y-14)
+      @d = @d.line(@pie_center_x-30,@pie_center_y-14,@pie_center_x-14,@pie_center_y-30)
+      @d = @d.line(@pie_center_x+14,@pie_center_y-30,@pie_center_x+30,@pie_center_y-14)
+      @d = @d.line(@pie_center_x+14,@pie_center_y-14,@pie_center_x+30,@pie_center_y-30)
+      @d.stroke_width(10)
+      @d = @d.ellipse(@pie_center_x, @pie_center_y + 20,
+                  5,5,
+                  0, 360) # <= +0.5 'fudge factor' gets rid of the ugly gaps
+      draw_pie_label(@pie_center_x,@pie_center_y, 90,
+          @pie_radius, "(We found nothing)", 4)
+      return
+    end
     if @data.size > 0
       @d.stroke_width(@pie_radius)
       total_sum = 0.0
       prev_degrees = 60.0
       @d.fill_opacity(0) # VERY IMPORTANT, otherwise undesired artifact can result.
-      total_sum = @aggregate.inject(:+) + 0.0 # Sum elements and make it a float
       degrees = Array([0,0,0,0])
       label_offset_degrees =  Array([0,0,0,0])
       @aggregate.each_with_index do |data_row, index|
