@@ -29,6 +29,7 @@ class AnalyticsCharts::CustomPie
     @label_start_y = label_start_y
     @label_offset = label_offset
   end
+
   def set_pie_geometry(x, y, radius)
     @pie_center_x = x
     @pie_center_y = y
@@ -131,7 +132,6 @@ class AnalyticsCharts::CustomPie
           @pie_radius, label_string, i)
         prev_degrees += degrees[i]
       end
-      @d.draw(@base_image)
     end
   end
 

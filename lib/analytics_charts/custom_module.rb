@@ -23,7 +23,6 @@ class AnalyticsCharts::CustomModule
       self.background_color = "black"
     }
     @base_image.composite!(@composite_image,0,0,OverCompositeOp)
-    #@d.stroke = 'white'
     @d = @d.stroke_color 'white'
     @d.stroke_width(1)
     @d = @d.line(0, @composite_rows, @composite_columns, @composite_rows)
