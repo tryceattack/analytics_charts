@@ -61,7 +61,7 @@ class AnalyticsCharts::CustomPie
       @d.stroke_width(@pie_radius)
       @d = @d.stroke "#FFFFFF"
       @d = @d.ellipse(@pie_center_x, @pie_center_y,
-                  @pie_radius / 2.0 , @pie_radius / 2.0,
+                  @pie_radius / 2.0, @pie_radius / 2.0,
                   0, 360) # <= +0.5 'fudge factor' gets rid of the ugly gaps
       @d = @d.stroke "#000000"
       @d.stroke_width(5)

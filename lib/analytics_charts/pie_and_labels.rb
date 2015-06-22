@@ -20,7 +20,7 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     @aggregate = Array([0,0,0,0]) # Cluster brands into categories
     @label_hash = {'pointsize'=> 16,'font_weight'=> 700 }
     @pie_label_hash = {'pointsize'=> 14, 'font_weight' => 600 }
-    set_pie_colors(%w(#AD1F25 #BE6428 #C1B630 #1E753B))
+    set_pie_colors(%w(#AD1F25 #BE6428 #C1B630 #1E753B #000000))
    	@base_image = Image.new(@columns, @rows) {
       self.background_color = "black"
     }
