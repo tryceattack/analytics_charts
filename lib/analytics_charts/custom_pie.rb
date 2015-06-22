@@ -46,12 +46,24 @@ class AnalyticsCharts::CustomPie
     @data[name] =  [amount, quality]
     @aggregate[quality] += amount
   end
-
+  def insert_text_with_arrow(x_offset, y_offset, text, features = {})
+    features.each { |feature, attribute|
+      set_feature(feature, attribute)
+    }
+    @d.annotate(@base_image, 0 ,0, x_offset, y_offset, text)
+    height = @d.get_type_metrics(@base_image, text).ascent
+    y_offset -= height / 2
+    arrow_xpos = x_offset + @d.get_type_metrics(@base_image, text).width + 5
+    @d.stroke_width(4)
+    @d.stroke features["fill"]
+    @d = @d.line(arrow_xpos+1,y_offset,arrow_xpos+12,y_offset+6)
+    @d = @d.line(arrow_xpos,y_offset,arrow_xpos+30,y_offset)
+    @d = @d.line(arrow_xpos+1,y_offset,arrow_xpos+12,y_offset-6)
+  end
   def insert_text(x_offset, y_offset, text, features = {})
     features.each { |feature, attribute|
       set_feature(feature, attribute)
     }
-    #puts @d.get_type_metrics(@base_image, text.to_s).width,@d.get_type_metrics(@base_image, text.to_s).height,text
     @d.annotate(@base_image, 0 ,0, x_offset, y_offset, text)
   end
 
@@ -62,7 +74,7 @@ class AnalyticsCharts::CustomPie
       @d = @d.stroke "#FFFFFF"
       @d = @d.ellipse(@pie_center_x, @pie_center_y,
                   @pie_radius / 2.0, @pie_radius / 2.0,
-                  0, 360) # <= +0.5 'fudge factor' gets rid of the ugly gaps
+                  0, 360 + 0.5) # <= +0.5 'fudge factor' gets rid of the ugly gaps
       @d = @d.stroke "#000000"
       @d.stroke_width(5)
       @d = @d.line(@pie_center_x-30,@pie_center_y-30,@pie_center_x-14,@pie_center_y-14)
@@ -79,7 +91,6 @@ class AnalyticsCharts::CustomPie
     end
     if @data.size > 0
       @d.stroke_width(@pie_radius)
-      total_sum = 0.0
       prev_degrees = 60.0
       @d.fill_opacity(0) # VERY IMPORTANT, otherwise undesired artifact can result.
       degrees = Array([0,0,0,0])
@@ -167,14 +178,33 @@ class AnalyticsCharts::CustomPie
     x_offset = @label_start_x
     y_offset = @label_start_y
     for data in sorted_data
+      has_data = false
       if data[1][0] > 0 # Amount > 0
         font_weight = 900 # Very Bold
-        text = data[0] + ' <--'
+        text = data[0]
+        has_data = true
       else
         text = data[0]
         font_weight = 900 # Very Bold
       end
-      case data[1][1]
+      if has_data
+        case data[1][1]
+        when 3
+          # label_hash gets merged and overrided by fill and font_weight.
+          insert_text_with_arrow(x_offset, y_offset, text,
+            @label_hash.merge({'fill'=> '#1E753B', 'font_weight'=> font_weight }))
+        when 2
+          insert_text_with_arrow(x_offset, y_offset, text,
+            @label_hash.merge({'fill'=> '#C1B630', 'font_weight'=> font_weight }))
+        when 1
+          insert_text_with_arrow(x_offset, y_offset, text,
+           @label_hash.merge({'fill'=> '#BE6428', 'font_weight'=> font_weight }))
+        when 0
+          insert_text_with_arrow(x_offset, y_offset, text,
+            @label_hash.merge({'fill'=> '#AD1F25', 'font_weight'=> font_weight }))
+        end
+      else
+        case data[1][1]
         when 3
           # label_hash gets merged and overrided by fill and font_weight.
           insert_text(x_offset, y_offset, text,
@@ -188,6 +218,7 @@ class AnalyticsCharts::CustomPie
         when 0
           insert_text(x_offset, y_offset, text,
             @label_hash.merge({'fill'=> '#AD1F25', 'font_weight'=> font_weight }))
+        end
       end
       y_offset += @label_offset
     end
