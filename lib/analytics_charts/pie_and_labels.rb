@@ -20,12 +20,12 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     @aggregate = Array([0,0,0,0]) # Cluster brands into categories
     @label_hash = {'pointsize'=> 16,'font_weight'=> 700 }
     @pie_label_hash = {'pointsize'=> 14, 'font_weight' => 600 }
-    set_pie_colors(%w(#AD1F25 #BE6428 #C1B630 #1E753B #000000))
+    set_pie_colors(%w(#AD1F25 #BE6428 #C1B630 #1E753B #FFFFFF))
    	@base_image = Image.new(@columns, @rows) {
       self.background_color = "black"
     }
     @base_image.composite!(@composite_image,0,0,OverCompositeOp)
-    set_pie_geometry(325, 100+ @composite_rows, 50)
+    set_pie_geometry(325, 60+ @composite_rows, 50)
     set_label_values(22, 20+@composite_rows, 16)
     y_offset = @rows_with_no_disclaimer + @d.get_type_metrics(@dummy_image,"a").height + 5
     @rows_of_text.each do |text|
@@ -54,8 +54,12 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
   end
 
   def draw_organization
-    insert_text(22, @rows_with_no_disclaimer - 10,  @organization,
+    insert_text(22, @rows_with_no_disclaimer - 20,  @organization,
       @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 10 }))
+    category_disclaimer = "(categories only for demo purposes)"
+    insert_text(22, @rows_with_no_disclaimer - 10, category_disclaimer,
+      @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 10 }))
+
   end
 
   def insert_legend(label, quality)
@@ -63,7 +67,7 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
   end
 
   def draw_legend
-    y_offset = 230 + @composite_rows
+    y_offset = 180 + @composite_rows
     @d.fill_opacity(1)
     @d.stroke_width(0)
     @d = @d.stroke 'transparent'

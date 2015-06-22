@@ -21,7 +21,7 @@ class AnalyticsCharts::CustomPie
     @pie_label_hash = Hash.new
     @label_hash = label_hash if label_hash
     @pie_label_hash = pie_label_hash if pie_label_hash
-    set_pie_colors(%w(#AD1F25 #BE6428 #C1B630 #1E753B #000000))
+    set_pie_colors(%w(#AD1F25 #BE6428 #C1B630 #1E753B #FFFFFF))
   end
 
   def set_label_values(label_start_x, label_start_y, label_offset)
@@ -73,8 +73,8 @@ class AnalyticsCharts::CustomPie
       @d = @d.ellipse(@pie_center_x, @pie_center_y + 20,
                   5,5,
                   0, 360) # <= +0.5 'fudge factor' gets rid of the ugly gaps
-      draw_pie_label(@pie_center_x,@pie_center_y, 90,
-          @pie_radius, "(We found nothing)", 4)
+      draw_pie_label(@pie_center_x,@pie_center_y, 45,
+          @pie_radius, "$0", 4)
       return
     end
     if @data.size > 0
