@@ -29,6 +29,7 @@ class AnalyticsCharts::CustomModule
     @d.draw(@base_image)
     y_offset = 22 + @composite_rows + @d.get_type_metrics(@dummy_image,"a").height / 2
     @rows_of_text.each do |text|
+      text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
       if text.include? "@$$" # No paragraph break if we insert this uncommonly used word
         text.sub!("@$$", "")
         @d.annotate(@base_image, 0 ,0, 22, y_offset, text)

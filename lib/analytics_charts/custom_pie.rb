@@ -50,7 +50,7 @@ class AnalyticsCharts::CustomPie
     # Figure out whether to give name a 0,1,2, or 3
     [0,1,2,3].each do |rank|
       next if @thresholds[rank].is_a?(String)
-      if quality < @thresholds[rank]
+      if quality <= @thresholds[rank]
         @data[name] =  [amount, rank]
         @aggregate[rank] += amount
         break
