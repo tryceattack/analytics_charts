@@ -5,6 +5,7 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
   def initialize(meme, num_labels, organization, disclaimer)
     @organization = organization
     @legend_data = Array.new(["","","",""])
+    @thresholds = Array(["","","",""]) # Will populate with integer thresholds
     @columns = 450
     @composite_image = Image.read(meme)[0]
     @composite_columns = @composite_image.columns

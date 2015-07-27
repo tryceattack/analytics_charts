@@ -41,10 +41,6 @@ class AnalyticsCharts::CustomPie
     @colors = list
   end
 
-  def choose_color(rating)
-    return @colors[0]
-  end
-
   def highest_score(index, score)
     @thresholds[index] = score
   end
