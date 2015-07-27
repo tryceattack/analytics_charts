@@ -61,6 +61,8 @@ class AnalyticsCharts::CustomPie
     features.each { |feature, attribute|
       set_feature(feature, attribute)
     }
+    # Double quotes automatically escaped in rails db. Refer to Rmagick doc for escaping stuff
+    text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
     @d.annotate(@base_image, 0 ,0, x_offset, y_offset, text)
     height = @d.get_type_metrics(@base_image, text).ascent
     y_offset -= height / 2
@@ -75,6 +77,7 @@ class AnalyticsCharts::CustomPie
     features.each { |feature, attribute|
       set_feature(feature, attribute)
     }
+    text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
     @d.annotate(@base_image, 0 ,0, x_offset, y_offset, text)
   end
 
