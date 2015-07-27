@@ -17,6 +17,7 @@ class AnalyticsCharts::CustomPie
     @d = Draw.new
     @data = Hash.new # Value is array with two items
     @aggregate = Array([0,0,0,0]) # Cluster brands into categories
+    @thresholds = Array(["","","",""]) # Will populate with integer thresholds
     @label_hash = Hash.new
     @pie_label_hash = Hash.new
     @label_hash = label_hash if label_hash
@@ -40,11 +41,25 @@ class AnalyticsCharts::CustomPie
     @colors = list
   end
 
+  def choose_color(rating)
+    return @colors[0]
+  end
+
+  def highest_score(index, score)
+    @thresholds[index] = score
+  end
   def insert_pie_data(name, amount, quality)
     #convert all '&#39; instances to an apostrophe
     name = name.gsub(/&#39;/, "\'")
-    @data[name] =  [amount, quality]
-    @aggregate[quality] += amount
+    # Figure out whether to give name a 0,1,2, or 3
+    [0,1,2,3].each do |rank|
+      next if @thresholds[rank].is_a?(String)
+      if quality < @thresholds[rank]
+        @data[name] =  [amount, rank]
+        @aggregate[rank] += amount
+        break
+      end
+    end
   end
   def insert_text_with_arrow(x_offset, y_offset, text, features = {})
     features.each { |feature, attribute|
@@ -158,7 +173,7 @@ class AnalyticsCharts::CustomPie
       @aggregate.each_with_index do |data_row, i|
         next if degrees[i] == 0
         half_angle = prev_degrees + degrees[i] / 2
-        label_string = '$' + data_row.to_s
+        label_string = '$' + data_row.round(2).to_s
         draw_pie_label(@pie_center_x,@pie_center_y, half_angle + label_offset_degrees[i],
           @pie_radius, label_string, i)
         prev_degrees += degrees[i]

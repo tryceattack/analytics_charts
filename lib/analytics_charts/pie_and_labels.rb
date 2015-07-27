@@ -62,8 +62,21 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
 
   end
 
-  def insert_legend(label, quality)
-    @legend_data[quality] = label
+  def insert_legend(label, quality, color)
+    case color
+    when "green"
+      @legend_data[3] = label
+      highest_score(3, quality)
+    when "yellow"
+      @legend_data[2] = label
+      highest_score(2, quality)
+    when "orange"
+      @legend_data[1] = label
+      highest_score(1, quality)
+    when "red"
+      @legend_data[0] = label
+      highest_score(0, quality)
+    end
   end
 
   def draw_legend
@@ -74,29 +87,31 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     x_pos = 230
     side_length = 15
     @legend_data.each_with_index do |data, index|
-      case index
-        when 3
-          insert_text(x_pos + 20, y_offset + 12, data,
-            @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 10 }))
-          @d.fill('#1E753B')
-          @d.rectangle(x_pos,y_offset,x_pos + side_length, y_offset + side_length)
-        when 2
-          insert_text(x_pos + 20, y_offset + 12, data,
-            @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 10 }))
-          @d.fill('#C1B630')
-          @d.rectangle(x_pos,y_offset,x_pos + side_length, y_offset + side_length)
-        when 1
-          insert_text(x_pos + 20, y_offset + 12, data,
-           @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 10 }))
-          @d.fill('#BE6428')
-          @d.rectangle(x_pos,y_offset,x_pos + side_length, y_offset + side_length)
-        when 0
-          insert_text(x_pos + 20, y_offset + 12, data,
-            @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 10 }))
-          @d.fill('#AD1F25')
-          @d.rectangle(x_pos,y_offset,x_pos + side_length, y_offset + side_length)
+      unless data.empty? # Allows us to use only three legends or less
+        case index
+          when 3
+            insert_text(x_pos + 20, y_offset + 12, data,
+              @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 10 }))
+            @d.fill('#1E753B')
+            @d.rectangle(x_pos,y_offset,x_pos + side_length, y_offset + side_length)
+          when 2
+            insert_text(x_pos + 20, y_offset + 12, data,
+              @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 10 }))
+            @d.fill('#C1B630')
+            @d.rectangle(x_pos,y_offset,x_pos + side_length, y_offset + side_length)
+          when 1
+            insert_text(x_pos + 20, y_offset + 12, data,
+             @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 10 }))
+            @d.fill('#BE6428')
+            @d.rectangle(x_pos,y_offset,x_pos + side_length, y_offset + side_length)
+          when 0
+            insert_text(x_pos + 20, y_offset + 12, data,
+              @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 10 }))
+            @d.fill('#AD1F25')
+            @d.rectangle(x_pos,y_offset,x_pos + side_length, y_offset + side_length)
+        end
+        y_offset -= side_length
       end
-      y_offset -= side_length
     end
   end
   def draw_line
