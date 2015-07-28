@@ -72,7 +72,7 @@ class AnalyticsCharts::CustomPie
     @d.stroke_width(radius)
     @d.stroke features["fill"] unless features["fill"].nil?
     @d = @d.ellipse(circle_xpos, y_offset,
-      radius / 2.0, radius / 2.0, 0, 360 + 1.0) # <= +0.5 'fudge factor' gets rid of the ugly gaps
+      radius / 2.0, radius / 2.0, 0, 400) # Need bigger overlap for smaller circle
   end
 
   def insert_text(x_offset, y_offset, text, features = {})
@@ -90,7 +90,7 @@ class AnalyticsCharts::CustomPie
       @d = @d.stroke "#FFFFFF"
       @d = @d.ellipse(@pie_center_x, @pie_center_y,
                   @pie_radius / 2.0, @pie_radius / 2.0,
-               0, 360 + 0.5) # <= +0.5 'fudge factor' gets rid of the ugly gaps
+               -5, 360 + 1.0) # <= +0.5 'fudge factor' gets rid of the ugly gaps
       @d.draw(@base_image)
       # If we don't refresh draw, future "@d.draw(@base_image)" will redraw the circle,
       # overlapping on the text written below
@@ -124,7 +124,7 @@ class AnalyticsCharts::CustomPie
         # half the radius for both x and y
         @d = @d.ellipse(@pie_center_x, @pie_center_y,
                   @pie_radius / 2.0, @pie_radius / 2.0,
-                  prev_degrees, prev_degrees + degrees[i] + 0.5) # <= +0.5 'fudge factor' gets rid of the ugly gaps
+                  prev_degrees, prev_degrees + degrees[i] + 1.0) # <= +0.5 'fudge factor' gets rid of the ugly gaps
         prev_degrees += degrees[i]
       end
       # If less than two small slices, or there are two small slices that are not adjacent

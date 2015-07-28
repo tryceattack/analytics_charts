@@ -132,10 +132,8 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
   def tokenize_text_by_lines(text)
     # First split the text by the line carriage element
     carriage_split_lines = text.split("\r\n")
-    puts carriage_split_lines
     line_tokens = Array.new
     carriage_split_lines.each do |carriage_split_line|
-      puts carriage_split_line
       line_wrap_lines = line_wrap(carriage_split_line)
       begin
         line_wrap_lines.each { |line| line_tokens.push(line) }
