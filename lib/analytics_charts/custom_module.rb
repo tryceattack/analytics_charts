@@ -6,7 +6,8 @@ class AnalyticsCharts::CustomModule
     @d = Draw.new
     @d.fill = 'white'
     @d.font = 'Helvetica'
-    @d.pointsize = 22
+    @pointsize = 18
+    @d.pointsize = @pointsize
     @d.font_weight = 500
     @composite_image = Image.read(image_path)[0]
     @dummy_image = Image.new(1,1)
@@ -18,7 +19,7 @@ class AnalyticsCharts::CustomModule
       puts "Had some error in CustomModule, probably a nil calling each"
       return
     end
-    @height = @composite_rows + @rows_of_text.size * 22
+    @height = @composite_rows + @rows_of_text.size * @pointsize
     @base_image = Image.new(@composite_columns, @height) {
       self.background_color = "black"
     }
@@ -27,16 +28,16 @@ class AnalyticsCharts::CustomModule
     @d.stroke_width(1)
     @d = @d.line(0, @composite_rows, @composite_columns, @composite_rows)
     @d.draw(@base_image)
-    y_offset = 22 + @composite_rows + @d.get_type_metrics(@dummy_image,"a").height / 2
+    y_offset = @pointsize + @composite_rows + @d.get_type_metrics(@dummy_image,"a").height / 2
     @rows_of_text.each do |text|
       text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
       if text.include? "@$$" # No paragraph break if we insert this uncommonly used word
         text.sub!("@$$", "")
-        @d.annotate(@base_image, 0 ,0, 22, y_offset, text)
+        @d.annotate(@base_image, 0 ,0, @pointsize, y_offset, text)
         next
       else
-        @d.annotate(@base_image, 0 ,0, 22, y_offset, text)
-        y_offset += 22
+        @d.annotate(@base_image, 0 ,0, @pointsize, y_offset, text)
+        y_offset += @pointsize
       end
     end
     @base_image.write(output_path)
@@ -69,7 +70,7 @@ class AnalyticsCharts::CustomModule
   end
 
   def fits_in_a_line(text)
-    return @d.get_type_metrics(@dummy_image,text).width < @composite_image.columns - 44
+    return @d.get_type_metrics(@dummy_image,text).width < @composite_image.columns - @pointsize * 2
   end
 end
 #Reference: Draw defaults[ font: "Helvetica", pointsize:12, x/y resolution 72 DPI, font_weight: 400]

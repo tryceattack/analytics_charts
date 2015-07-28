@@ -57,7 +57,8 @@ class AnalyticsCharts::CustomPie
       end
     end
   end
-  def insert_text_with_arrow(x_offset, y_offset, text, features = {})
+
+  def insert_text_with_circle(x_offset, y_offset, text, features = {})
     features.each { |feature, attribute|
       set_feature(feature, attribute)
     }
@@ -66,13 +67,14 @@ class AnalyticsCharts::CustomPie
     @d.annotate(@base_image, 0 ,0, x_offset, y_offset, text)
     height = @d.get_type_metrics(@base_image, text).ascent
     y_offset -= height / 2
-    arrow_xpos = x_offset + @d.get_type_metrics(@base_image, text).width + 5
-    @d.stroke_width(4)
-    @d.stroke features["fill"]
-    @d = @d.line(arrow_xpos+1,y_offset,arrow_xpos+12,y_offset+6)
-    @d = @d.line(arrow_xpos,y_offset,arrow_xpos+30,y_offset)
-    @d = @d.line(arrow_xpos+1,y_offset,arrow_xpos+12,y_offset-6)
+    circle_xpos = x_offset - 10
+    radius = 5
+    @d.stroke_width(radius)
+    @d.stroke features["fill"] unless features["fill"].nil?
+    @d = @d.ellipse(circle_xpos, y_offset,
+      radius / 2.0, radius / 2.0, 0, 360 + 1.0) # <= +0.5 'fudge factor' gets rid of the ugly gaps
   end
+
   def insert_text(x_offset, y_offset, text, features = {})
     features.each { |feature, attribute|
       set_feature(feature, attribute)
@@ -88,19 +90,13 @@ class AnalyticsCharts::CustomPie
       @d = @d.stroke "#FFFFFF"
       @d = @d.ellipse(@pie_center_x, @pie_center_y,
                   @pie_radius / 2.0, @pie_radius / 2.0,
-                  0, 360 + 0.5) # <= +0.5 'fudge factor' gets rid of the ugly gaps
-      @d = @d.stroke "#000000"
-      @d.stroke_width(5)
-      @d = @d.line(@pie_center_x-30,@pie_center_y-30,@pie_center_x-14,@pie_center_y-14)
-      @d = @d.line(@pie_center_x-30,@pie_center_y-14,@pie_center_x-14,@pie_center_y-30)
-      @d = @d.line(@pie_center_x+14,@pie_center_y-30,@pie_center_x+30,@pie_center_y-14)
-      @d = @d.line(@pie_center_x+14,@pie_center_y-14,@pie_center_x+30,@pie_center_y-30)
-      @d.stroke_width(10)
-      @d = @d.ellipse(@pie_center_x, @pie_center_y + 20,
-                  5,5,
-                  0, 360) # <= +0.5 'fudge factor' gets rid of the ugly gaps
-      draw_pie_label(@pie_center_x,@pie_center_y, 45,
-          @pie_radius, "$0", 4)
+               0, 360 + 0.5) # <= +0.5 'fudge factor' gets rid of the ugly gaps
+      @d.draw(@base_image)
+      # If we don't refresh draw, future "@d.draw(@base_image)" will redraw the circle,
+      # overlapping on the text written below
+      @d = Draw.new
+      insert_text(@pie_center_x - 30, @pie_center_y, "No data....",
+        @label_hash.merge({'fill'=> '#000000', 'font_weight'=> 700 }))
       return
     end
     if @data.size > 0
@@ -172,7 +168,7 @@ class AnalyticsCharts::CustomPie
       @aggregate.each_with_index do |data_row, i|
         next if degrees[i] == 0
         half_angle = prev_degrees + degrees[i] / 2
-        label_string = '$' + data_row.round(2).to_s
+        label_string = '$' + data_row.round(0).to_s
         draw_pie_label(@pie_center_x,@pie_center_y, half_angle + label_offset_degrees[i],
           @pie_radius, label_string, i)
         prev_degrees += degrees[i]
@@ -189,7 +185,7 @@ class AnalyticsCharts::CustomPie
   def draw_labels
     @d.align = LeftAlign
     sorted_data = @data.sort_by{|key,value| -value[1]} # Sort by descending quality
-    x_offset = @label_start_x
+    x_offset = @label_start_x + 15
     y_offset = @label_start_y
     for data in sorted_data
       has_data = false
@@ -205,16 +201,16 @@ class AnalyticsCharts::CustomPie
         case data[1][1]
         when 3
           # label_hash gets merged and overrided by fill and font_weight.
-          insert_text_with_arrow(x_offset, y_offset, text,
+          insert_text_with_circle(x_offset, y_offset, text,
             @label_hash.merge({'fill'=> '#1E753B', 'font_weight'=> font_weight }))
         when 2
-          insert_text_with_arrow(x_offset, y_offset, text,
+          insert_text_with_circle(x_offset, y_offset, text,
             @label_hash.merge({'fill'=> '#C1B630', 'font_weight'=> font_weight }))
         when 1
-          insert_text_with_arrow(x_offset, y_offset, text,
+          insert_text_with_circle(x_offset, y_offset, text,
            @label_hash.merge({'fill'=> '#BE6428', 'font_weight'=> font_weight }))
         when 0
-          insert_text_with_arrow(x_offset, y_offset, text,
+          insert_text_with_circle(x_offset, y_offset, text,
             @label_hash.merge({'fill'=> '#AD1F25', 'font_weight'=> font_weight }))
         end
       else
@@ -236,6 +232,8 @@ class AnalyticsCharts::CustomPie
       end
       y_offset += @label_offset
     end
+    insert_text_with_circle(x_offset, y_offset, '= purchased by you',
+      @label_hash.merge({'fill'=> '#FFFFFF', 'font_weight'=> 900 }))
   end
 
   def draw_pie_label(center_x, center_y, angle, radius, percent, index)
