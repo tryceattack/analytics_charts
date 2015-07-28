@@ -96,7 +96,7 @@ class AnalyticsCharts::CustomPie
       # overlapping on the text written below
       @d = Draw.new
       insert_text(@pie_center_x - 30, @pie_center_y, "No Data",
-        @label_hash.merge({'fill'=> ' #000000', 'font_weight'=> 700 }))
+        @label_hash.merge({'fill'=> '#000000', 'font_weight'=> 700 }))
       return
     end
     if @data.size > 0

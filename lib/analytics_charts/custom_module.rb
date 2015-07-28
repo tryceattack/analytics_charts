@@ -4,6 +4,7 @@ class AnalyticsCharts::CustomModule
   include Magick
   def initialize(image_path, text, output_path)
     @d = Draw.new
+
     @d.fill = 'white'
     @d.font = 'Helvetica'
     @pointsize = 14
@@ -19,6 +20,7 @@ class AnalyticsCharts::CustomModule
       puts "Had some error in CustomModule, probably a nil calling each"
       return
     end
+
     num_separators = @rows_of_text.count {|row| row.empty? }
     @sep_offset = 7
     @height = @composite_rows + (@rows_of_text.size - num_separators) * @pointsize + num_separators * @sep_offset
@@ -40,11 +42,11 @@ class AnalyticsCharts::CustomModule
         y_offset += @pointsize
         next
       else
-        @d.annotate(@base_image, 0 ,0, @pointsize, y_offset, text)
         if text.empty?
           y_offset += @sep_offset
         else
           y_offset += @pointsize
+          @d.annotate(@base_image, 0 ,0, @pointsize, y_offset, text)
         end
       end
     end
