@@ -7,7 +7,7 @@ class AnalyticsCharts::CustomModule
 
     @d.fill = 'white'
     @d.font = 'Helvetica'
-    @pointsize = 14
+    @pointsize = 18
     @d.pointsize = @pointsize
     @d.font_weight = 500
     @composite_image = Image.read(image_path)[0]
