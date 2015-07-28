@@ -6,7 +6,7 @@ class AnalyticsCharts::CustomModule
     @d = Draw.new
     @d.fill = 'white'
     @d.font = 'Helvetica'
-    @pointsize = 18
+    @pointsize = 14
     @d.pointsize = @pointsize
     @d.font_weight = 500
     @composite_image = Image.read(image_path)[0]
@@ -19,7 +19,9 @@ class AnalyticsCharts::CustomModule
       puts "Had some error in CustomModule, probably a nil calling each"
       return
     end
-    @height = @composite_rows + @rows_of_text.size * @pointsize
+    num_separators = @rows_of_text.count {|row| row.empty? }
+    @sep_offset = 7
+    @height = @composite_rows + (@rows_of_text.size - num_separators) * @pointsize + num_separators * @sep_offset
     @base_image = Image.new(@composite_columns, @height) {
       self.background_color = "black"
     }
@@ -33,11 +35,17 @@ class AnalyticsCharts::CustomModule
       text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
       if text.include? "@$$" # No paragraph break if we insert this uncommonly used word
         text.sub!("@$$", "")
+        y_offset -= @sep_offset
         @d.annotate(@base_image, 0 ,0, @pointsize, y_offset, text)
+        y_offset += @pointsize
         next
       else
         @d.annotate(@base_image, 0 ,0, @pointsize, y_offset, text)
-        y_offset += @pointsize
+        if text.empty?
+          y_offset += @sep_offset
+        else
+          y_offset += @pointsize
+        end
       end
     end
     @base_image.write(output_path)
@@ -49,7 +57,7 @@ class AnalyticsCharts::CustomModule
     carriage_split_lines.each do |carriage_split_line|
       line_wrap_lines = line_wrap(carriage_split_line)
       line_wrap_lines.each { |line| line_tokens.push(line) }
-      line_tokens.push("\r\n")
+      line_tokens.push("")
     end
     line_tokens
   end
@@ -70,7 +78,7 @@ class AnalyticsCharts::CustomModule
   end
 
   def fits_in_a_line(text)
-    return @d.get_type_metrics(@dummy_image,text).width < @composite_image.columns - @pointsize * 2
+    return @d.get_type_metrics(@dummy_image,text).width < @composite_image.columns - 36
   end
 end
 #Reference: Draw defaults[ font: "Helvetica", pointsize:12, x/y resolution 72 DPI, font_weight: 400]

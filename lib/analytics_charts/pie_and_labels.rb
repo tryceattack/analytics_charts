@@ -12,9 +12,11 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     @d.font_weight = 700
     @dummy_image = Image.new(1,1)
     @composite_columns = @composite_image.columns
+    puts @composite_columns
     @composite_rows = @composite_image.rows
-    @org_texts = tokenize_text_by_lines(organization)
     @org_text_size = 14
+    @org_texts = tokenize_text_by_lines(organization,
+      {'fill' => '#FFFFFF', 'pointsize'=> @org_text_size, 'font_weight'=> 500  })
     @label_size = 16
     org_text_offset = @org_texts.size * @org_text_size
     # (num_labels + 1) to account for white key on bottom of labels
@@ -129,7 +131,10 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     @d.line(0,@height_with_no_disclaimer,@composite_columns,@height_with_no_disclaimer)
   end
 
-  def tokenize_text_by_lines(text)
+  def tokenize_text_by_lines(text, features = {})
+    features.each { |feature, attribute|
+      set_feature(feature, attribute)
+    }
     # First split the text by the line carriage element
     carriage_split_lines = text.split("\r\n")
     line_tokens = Array.new

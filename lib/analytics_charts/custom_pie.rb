@@ -95,8 +95,8 @@ class AnalyticsCharts::CustomPie
       # If we don't refresh draw, future "@d.draw(@base_image)" will redraw the circle,
       # overlapping on the text written below
       @d = Draw.new
-      insert_text(@pie_center_x - 30, @pie_center_y, "No data....",
-        @label_hash.merge({'fill'=> '#000000', 'font_weight'=> 700 }))
+      insert_text(@pie_center_x - 30, @pie_center_y, "No Data",
+        @label_hash.merge({'fill'=> ' #000000', 'font_weight'=> 700 }))
       return
     end
     if @data.size > 0
@@ -233,7 +233,7 @@ class AnalyticsCharts::CustomPie
       y_offset += @label_offset
     end
     insert_text_with_circle(x_offset, y_offset, '= purchased by you',
-      @label_hash.merge({'fill'=> '#FFFFFF', 'font_weight'=> 900 }))
+      @label_hash.merge({'fill'=> '#252525', 'font_weight'=> 900 }))
   end
 
   def draw_pie_label(center_x, center_y, angle, radius, percent, index)
@@ -251,16 +251,16 @@ class AnalyticsCharts::CustomPie
     # Imagine the text box around the text
     # Shift text box so a corner is tangent to circle
     if x > center_x
-      x += width / 2.0
+      x += width / 2.0 + 6
     end
     if x < center_x
-      x -= width / 2.0
+      x -= width / 2.0 + 6
     end
     if y > center_y
-      y += ascent / 2.0
+      y += ascent / 2.0 + 6
     end
     if y < center_y
-      y -= (ascent / 2.0 - descent) # descent to account for '$' descent,
+      y -= ascent / 2.0 + 6
       # descent value retrieved is negative, so sub instead of add
     end
     @d.align = CenterAlign
