@@ -23,7 +23,8 @@ class AnalyticsCharts::CustomModule
 
     num_separators = @rows_of_text.count {|row| row.empty? }
     @sep_offset = 7
-    @height = @composite_rows + (@rows_of_text.size - num_separators) * @pointsize + num_separators * @sep_offset
+    starting_offset = @pointsize
+    @height = @composite_rows + (@rows_of_text.size - num_separators) * @pointsize + num_separators * @sep_offset + starting_offset
     @base_image = Image.new(@composite_columns, @height) {
       self.background_color = "black"
     }
@@ -32,7 +33,7 @@ class AnalyticsCharts::CustomModule
     @d.stroke_width(1)
     @d = @d.line(0, @composite_rows, @composite_columns, @composite_rows)
     @d.draw(@base_image)
-    y_offset = @pointsize + @composite_rows + @d.get_type_metrics(@dummy_image,"a").height / 2
+    y_offset = starting_offset + @composite_rows
     @rows_of_text.each do |text|
       text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
       if text.include? "@$$" # No paragraph break if we insert this uncommonly used word
