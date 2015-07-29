@@ -15,6 +15,7 @@ class AnalyticsCharts::CustomModule
     @composite_columns = @composite_image.columns
     @composite_rows = @composite_image.rows
     puts "@composite_columns: " + @composite_columns.to_s
+    text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
     begin
       @rows_of_text = tokenize_text_by_lines(text)
     rescue
@@ -36,7 +37,6 @@ class AnalyticsCharts::CustomModule
     @d.draw(@base_image)
     y_offset = starting_offset + @composite_rows
     @rows_of_text.each do |text|
-      text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
       if text.include? "@$$" # No paragraph break if we insert this uncommonly used word
         text.sub!("@$$", "")
         y_offset -= @sep_offset
