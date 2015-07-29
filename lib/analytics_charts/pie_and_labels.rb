@@ -15,12 +15,14 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     puts @composite_columns
     @composite_rows = @composite_image.rows
     @org_text_size = 14
+    organization = organization.gsub(/['%]/, '%' => '%%', "'" => "\'")
     @org_texts = tokenize_text_by_lines(organization,
       {'fill' => '#FFFFFF', 'pointsize'=> @org_text_size, 'font_weight'=> 500  })
     @label_size = 16
     org_text_offset = @org_texts.size * @org_text_size
     # (num_labels + 1) to account for white key on bottom of labels
     @height_with_no_disclaimer = [200 + 20, 20 + @label_size * (num_labels + 1) + 20].max + @composite_rows + org_text_offset
+    disclaimer = disclaimer.gsub(/['%]/, '%' => '%%', "'" => "\'")
     @disclaimer_texts = tokenize_text_by_lines(disclaimer)
     @height = @height_with_no_disclaimer + @disclaimer_texts.size * 12 + 5
     @data = Hash.new # Value is array with two items
