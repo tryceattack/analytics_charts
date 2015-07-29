@@ -14,6 +14,7 @@ class AnalyticsCharts::CustomModule
     @dummy_image = Image.new(1,1)
     @composite_columns = @composite_image.columns
     @composite_rows = @composite_image.rows
+    puts "@composite_columns: " + @composite_columns.to_s
     begin
       @rows_of_text = tokenize_text_by_lines(text)
     rescue
@@ -81,6 +82,7 @@ class AnalyticsCharts::CustomModule
   end
 
   def fits_in_a_line(text)
+    puts text + "   SIZE: " + @d.get_type_metrics(@dummy_image,text).width.to_s + "   COLUMNS: " + (@composite_image.columns - 36).to_s
     return @d.get_type_metrics(@dummy_image,text).width < @composite_image.columns - 36
   end
 end
