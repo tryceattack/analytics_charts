@@ -14,7 +14,6 @@ class AnalyticsCharts::CustomModule
     @dummy_image = Image.new(1,1)
     @composite_columns = @composite_image.columns
     @composite_rows = @composite_image.rows
-    puts "@composite_columns: " + @composite_columns.to_s
     text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
     begin
       @rows_of_text = tokenize_text_by_lines(text)
@@ -24,9 +23,14 @@ class AnalyticsCharts::CustomModule
     end
 
     num_separators = @rows_of_text.count {|row| row.empty? }
-    @sep_offset = 7
-    starting_offset = @pointsize
-    @height = @composite_rows + (@rows_of_text.size - num_separators) * @pointsize + num_separators * @sep_offset + starting_offset
+    num_special_sep = @rows_of_text.count {|row| row.include? "@$$" }
+    @line_height = @pointsize + 2
+    @sep_offset = @line_height / 2
+    starting_offset = @line_height / 2
+    ending_offset = @line_height / 2
+    @height = @composite_rows + (@rows_of_text.size - num_separators) *
+      @line_height + (num_separators-num_special_sep) * @sep_offset +
+      starting_offset + ending_offset
     @base_image = Image.new(@composite_columns, @height) {
       self.background_color = "black"
     }
@@ -35,19 +39,19 @@ class AnalyticsCharts::CustomModule
     @d.stroke_width(1)
     @d = @d.line(0, @composite_rows, @composite_columns, @composite_rows)
     @d.draw(@base_image)
-    y_offset = starting_offset + @composite_rows
+    y_offset = @composite_rows + starting_offset
     @rows_of_text.each do |text|
       if text.include? "@$$" # No paragraph break if we insert this uncommonly used word
         text.sub!("@$$", "")
         y_offset -= @sep_offset
+        y_offset += @line_height
         @d.annotate(@base_image, 0 ,0, @pointsize, y_offset, text)
-        y_offset += @pointsize
         next
       else
         if text.empty?
           y_offset += @sep_offset
         else
-          y_offset += @pointsize
+          y_offset += @line_height
           @d.annotate(@base_image, 0 ,0, @pointsize, y_offset, text)
         end
       end
@@ -68,12 +72,12 @@ class AnalyticsCharts::CustomModule
   def line_wrap(text)
     tokens = text.split.reverse # Pop stuff off
     # Safety check, do not allow super long words.
-    tokens.each {|token| return "" if not fits_in_a_line(token) }
+    tokens.each {|token| return "" if not fits_in_a_line?(token) }
     line_wrap_tokens = Array.new
     line_builder = ""
     while tokens.size != 0
       line_builder = tokens.pop # Pop the first word in a line
-      while tokens.size != 0 and fits_in_a_line(line_builder + " " + tokens.last)
+      while tokens.size != 0 and fits_in_a_line?(line_builder + " " + tokens.last)
         line_builder += " " + tokens.pop
       end
       line_wrap_tokens.push(line_builder) # Add to list of lines
@@ -81,8 +85,7 @@ class AnalyticsCharts::CustomModule
     line_wrap_tokens
   end
 
-  def fits_in_a_line(text)
-    puts text + "   SIZE: " + @d.get_type_metrics(@dummy_image,text).width.to_s + "   COLUMNS: " + (@composite_image.columns - 36).to_s
+  def fits_in_a_line?(text)
     return @d.get_type_metrics(@dummy_image,text).width < @composite_image.columns - 36
   end
 end

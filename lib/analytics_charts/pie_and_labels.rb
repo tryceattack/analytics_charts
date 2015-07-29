@@ -12,19 +12,24 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     @d.font_weight = 700
     @dummy_image = Image.new(1,1)
     @composite_columns = @composite_image.columns
-    puts @composite_columns
     @composite_rows = @composite_image.rows
-    @org_text_size = 14
     organization = organization.gsub(/['%]/, '%' => '%%', "'" => "\'")
+    @org_text_size = 14
+    @org_height = @org_text_size + 1
     @org_texts = tokenize_text_by_lines(organization,
       {'fill' => '#FFFFFF', 'pointsize'=> @org_text_size, 'font_weight'=> 500  })
+    org_text_offset = @org_texts.size * @org_height
+
     @label_size = 16
-    org_text_offset = @org_texts.size * @org_text_size
+    self.label_attributes = {'pointsize' => @label_size, 'font_weight' => 900}
+    recalibrate_metrics_for_labels
+    self.label_height = @label_size + 1
+
     # (num_labels + 1) to account for white key on bottom of labels
-    @height_with_no_disclaimer = [200 + 20, 20 + @label_size * (num_labels + 1) + 20].max + @composite_rows + org_text_offset
+    @height_with_no_disclaimer = [200 + 20, 20 + self.label_height * (num_labels + 1) + 20].max + @composite_rows + org_text_offset
     disclaimer = disclaimer.gsub(/['%]/, '%' => '%%', "'" => "\'")
     @disclaimer_texts = tokenize_text_by_lines(disclaimer)
-    @height = @height_with_no_disclaimer + @disclaimer_texts.size * 12 + 5
+    @height = @height_with_no_disclaimer + @disclaimer_texts.size * 12
     @data = Hash.new # Value is array with two items
     @aggregate = Array([0,0,0,0]) # Cluster brands into categories
     @label_hash = {'pointsize'=> @label_size,'font_weight'=> 700 }
@@ -45,11 +50,11 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
       insert_text(22, y_offset ,text,
             @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> @org_text_size, 'font_weight'=> 500  }))
       @d.annotate(@base_image, 0 ,0, 22, y_offset, text)
-      y_offset += @org_text_size
+      y_offset += @org_height
     end
   end
   def annotate_disclaimer
-    y_offset = @height_with_no_disclaimer + @d.get_type_metrics(@dummy_image,"a").height + 5
+    y_offset = @height_with_no_disclaimer + @d.get_type_metrics(@dummy_image,"a").height
     @disclaimer_texts.each do |text|
       if text.include? "@$$" # No paragraph break if we insert this uncommonly used word
         text.sub!("@$$", "")
@@ -153,12 +158,12 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
   def line_wrap(text)
     tokens = text.split.reverse # Pop stuff off
     # Safety check, do not allow super long words.
-    tokens.each {|token| return "" if not fits_in_a_line(token) }
+    tokens.each {|token| return "" if not fits_in_a_line?(token) }
     line_wrap_tokens = Array.new
     line_builder = ""
     while tokens.size != 0
       line_builder = tokens.pop # Pop the first word in a line
-      while tokens.size != 0 and fits_in_a_line(line_builder + " " + tokens.last)
+      while tokens.size != 0 and fits_in_a_line?(line_builder + " " + tokens.last)
         line_builder += " " + tokens.pop
       end
       line_wrap_tokens.push(line_builder) # Add to list of lines
@@ -166,7 +171,7 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     line_wrap_tokens
   end
 
-  def fits_in_a_line(text)
+  def fits_in_a_line?(text)
     return @d.get_type_metrics(@dummy_image,text).width < @composite_columns - 44
   end
 

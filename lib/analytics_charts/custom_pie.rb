@@ -10,6 +10,7 @@ class AnalyticsCharts::CustomPie
   attr_accessor :label_start_x
   attr_accessor :label_start_y
   attr_accessor :label_offset
+
   def initialize(image_path, label_hash, pie_label_hash)
     @base_image = Image.read(image_path)[0]
     @columns = @base_image.columns
@@ -44,6 +45,7 @@ class AnalyticsCharts::CustomPie
   def highest_score(index, score)
     @thresholds[index] = score
   end
+
   def insert_pie_data(name, amount, quality)
     #convert all '&#39; instances to an apostrophe
     name = name.gsub(/&#39;/, "\'")
@@ -58,13 +60,24 @@ class AnalyticsCharts::CustomPie
     end
   end
 
+  def label_attributes=(label = {})
+    @label_attributes = label
+  end
+
+  def label_attributes
+    @label_attributes ||= {}
+  end
+
+  def label_height=(height)
+    @label_height = height
+  end
+
+  def label_height
+    @label_height ||= 12
+  end
+
   def insert_text_with_circle(x_offset, y_offset, text, features = {})
-    features.each { |feature, attribute|
-      set_feature(feature, attribute)
-    }
-    # Double quotes automatically escaped in rails db. Refer to Rmagick doc for escaping stuff
-    text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
-    @d.annotate(@base_image, 0 ,0, x_offset, y_offset, text)
+    insert_text(x_offset, y_offset, text, features)
     height = @d.get_type_metrics(@base_image, text).ascent
     y_offset -= height / 2
     circle_xpos = x_offset - 10
@@ -79,6 +92,7 @@ class AnalyticsCharts::CustomPie
     features.each { |feature, attribute|
       set_feature(feature, attribute)
     }
+    # Double quotes automatically escaped in rails db. Refer to Rmagick doc for escaping stuff
     text = text.gsub(/['%]/, '%' => '%%', "'" => "\'")
     @d.annotate(@base_image, 0 ,0, x_offset, y_offset, text)
   end
@@ -95,7 +109,7 @@ class AnalyticsCharts::CustomPie
       # If we don't refresh draw, future "@d.draw(@base_image)" will redraw the circle,
       # overlapping on the text written below
       @d = Draw.new
-      insert_text(@pie_center_x - 30, @pie_center_y, "No Data",
+      insert_text(@pie_center_x - 30, @pie_center_y, "(No Data)",
         @label_hash.merge({'fill'=> '#000000', 'font_weight'=> 700 }))
       return
     end
@@ -165,14 +179,34 @@ class AnalyticsCharts::CustomPie
         end
       end
       prev_degrees = 60.0 # Now focus on labels
-      @aggregate.each_with_index do |data_row, i|
+      @aggregate.each_with_index do |cluster_data_value, i|
         next if degrees[i] == 0
         half_angle = prev_degrees + degrees[i] / 2
-        label_string = '$' + data_row.round(0).to_s
+        label_string = process_pie_label_data(cluster_data_value)
         draw_pie_label(@pie_center_x,@pie_center_y, half_angle + label_offset_degrees[i],
           @pie_radius, label_string, i)
         prev_degrees += degrees[i]
       end
+    end
+  end
+
+  def process_pie_label_data(cluster_data_value)
+    if cluster_data_value < 10**3
+      return '$' + cluster_data_value.round(0).to_s
+    elsif cluster_data_value < 10**6
+      cluster_data_value /= 10**3 # Truncates decimals
+      return '$' + cluster_data_value.round(0).to_s + 'K'# Round is unnecessary, but add anyways
+    elsif cluster_data_value < 10**9
+      cluster_data_value /= 10**6
+      return '$' + cluster_data_value.round(0).to_s  + 'M'
+    elsif cluster_data_value < 10**12
+      cluster_data_value /= 10**9
+      return '$' + cluster_data_value.round(0).to_s + 'B'
+    elsif cluster_data_value < 10**15
+      cluster_data_value /= 10**12
+      return '$' + cluster_data_value.round(0).to_s + 'T'
+    else
+      return '>1T'
     end
   end
 
@@ -187,50 +221,49 @@ class AnalyticsCharts::CustomPie
     sorted_data = @data.sort_by{|key,value| -value[1]} # Sort by descending quality
     x_offset = @label_start_x + 15
     y_offset = @label_start_y
+    @label_hash = @label_hash.merge(label_attributes)
     for data in sorted_data
       has_data = false
       if data[1][0] > 0 # Amount > 0
-        font_weight = 900 # Very Bold
         text = data[0]
         has_data = true
       else
         text = data[0]
-        font_weight = 900 # Very Bold
       end
       if has_data
         case data[1][1]
         when 3
           # label_hash gets merged and overrided by fill and font_weight.
           insert_text_with_circle(x_offset, y_offset, text,
-            @label_hash.merge({'fill'=> '#1E753B', 'font_weight'=> font_weight }))
+            @label_hash.merge({'fill'=> '#1E753B'}))
         when 2
           insert_text_with_circle(x_offset, y_offset, text,
-            @label_hash.merge({'fill'=> '#C1B630', 'font_weight'=> font_weight }))
+            @label_hash.merge({'fill'=> '#C1B630'}))
         when 1
           insert_text_with_circle(x_offset, y_offset, text,
-           @label_hash.merge({'fill'=> '#BE6428', 'font_weight'=> font_weight }))
+           @label_hash.merge({'fill'=> '#BE6428'}))
         when 0
           insert_text_with_circle(x_offset, y_offset, text,
-            @label_hash.merge({'fill'=> '#AD1F25', 'font_weight'=> font_weight }))
+            @label_hash.merge({'fill'=> '#AD1F25'}))
         end
       else
         case data[1][1]
         when 3
           # label_hash gets merged and overrided by fill and font_weight.
           insert_text(x_offset, y_offset, text,
-            @label_hash.merge({'fill'=> '#1E753B', 'font_weight'=> font_weight }))
+            @label_hash.merge({'fill'=> '#1E753B'}))
         when 2
           insert_text(x_offset, y_offset, text,
-            @label_hash.merge({'fill'=> '#C1B630', 'font_weight'=> font_weight }))
+            @label_hash.merge({'fill'=> '#C1B630'}))
         when 1
           insert_text(x_offset, y_offset, text,
-           @label_hash.merge({'fill'=> '#BE6428', 'font_weight'=> font_weight }))
+           @label_hash.merge({'fill'=> '#BE6428'}))
         when 0
           insert_text(x_offset, y_offset, text,
-            @label_hash.merge({'fill'=> '#AD1F25', 'font_weight'=> font_weight }))
+            @label_hash.merge({'fill'=> '#AD1F25'}))
         end
       end
-      y_offset += @label_offset
+      y_offset += self.label_height
     end
     insert_text_with_circle(x_offset, y_offset, '= purchased by you',
       @label_hash.merge({'fill'=> '#252525', 'font_weight'=> 900 }))
@@ -269,6 +302,11 @@ class AnalyticsCharts::CustomPie
     insert_text(x, y, percent, {'fill'=> @colors[index]}.merge(@pie_label_hash))# {'fill'=> 'black', 'font_weight'=> 700, 'pointsize'=>48})
   end
 
+  def recalibrate_metrics_for_labels
+    label_attributes.each { |feature, attribute|
+      set_feature(feature, attribute)
+    }
+  end
   def set_feature(feature, attribute)
     begin
       case feature
