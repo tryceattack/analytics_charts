@@ -16,8 +16,9 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     organization = organization.gsub(/['%]/, '%' => '%%', "'" => "\'")
     @org_text_size = 14
     @org_height = @org_text_size + 1
-    @org_texts = tokenize_text_by_lines(organization,
-      {'fill' => '#FFFFFF', 'pointsize'=> @org_text_size, 'font_weight'=> 500  })
+    # features in hash should match those in annotate_organization
+    @org_features = {'fill' => '#FFFFFF', 'pointsize'=> @org_text_size, 'font_weight'=> 500  }
+    @org_texts = tokenize_text_by_lines(organization, @org_features)
     org_text_offset = @org_texts.size * @org_height
 
     @label_size = 16
@@ -28,7 +29,8 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     # (num_labels + 1) to account for white key on bottom of labels
     @height_with_no_disclaimer = [200 + 20, 20 + self.label_height * (num_labels + 1) + 20].max + @composite_rows + org_text_offset
     disclaimer = disclaimer.gsub(/['%]/, '%' => '%%', "'" => "\'")
-    @disclaimer_texts = tokenize_text_by_lines(disclaimer)
+    @disclaimer_features = {'fill' => '#FFFFFF', 'pointsize'=> 12, 'font_weight' => 500 }
+    @disclaimer_texts = tokenize_text_by_lines(disclaimer, @disclaimer_features)
     @height = @height_with_no_disclaimer + @disclaimer_texts.size * 12
     @data = Hash.new # Value is array with two items
     @aggregate = Array([0,0,0,0]) # Cluster brands into categories
@@ -48,7 +50,7 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     y_offset = @height_with_no_disclaimer - offset
     @org_texts.each do |text|
       insert_text(22, y_offset ,text,
-            @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> @org_text_size, 'font_weight'=> 500  }))
+            @label_hash.merge(@org_features))
       @d.annotate(@base_image, 0 ,0, 22, y_offset, text)
       y_offset += @org_height
     end
@@ -59,12 +61,12 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
       if text.include? "@$$" # No paragraph break if we insert this uncommonly used word
         text.sub!("@$$", "")
         insert_text(22, y_offset ,text,
-            @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 12 }))
+            @label_hash.merge(@disclaimer_features))
         @d.annotate(@base_image, 0 ,0, 22, y_offset, text)
         next
       else
         insert_text(22, y_offset ,text,
-            @label_hash.merge({'fill' => '#FFFFFF', 'pointsize'=> 12 }))
+            @label_hash.merge(@disclaimer_features))
         y_offset += 12
       end
     end
