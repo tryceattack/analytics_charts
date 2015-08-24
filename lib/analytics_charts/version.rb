@@ -1,3 +1,3 @@
 module AnalyticsCharts
-  VERSION = "1.7.3"
+  VERSION = "1.7.6"
 end

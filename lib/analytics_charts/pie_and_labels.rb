@@ -41,7 +41,7 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
       self.background_color = "black"
     }
     @base_image.composite!(@composite_image,0,0,OverCompositeOp)
-    set_pie_geometry(315, 60+ @composite_rows, 50)
+    set_pie_geometry(305, 60+ @composite_rows, 50)
     set_label_values(22, 20+@composite_rows, @label_size)
     annotate_organization(org_text_offset)
     annotate_disclaimer
@@ -76,7 +76,7 @@ class AnalyticsCharts::PieAndLabels < AnalyticsCharts::CustomPie
     draw
     draw_labels
     draw_legend
-    draw_line
+    #draw_line
     @d.draw(@base_image)
     @base_image.write(filename)
   end

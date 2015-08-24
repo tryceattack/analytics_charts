@@ -100,17 +100,18 @@ class AnalyticsCharts::CustomPie
   def draw
     total_sum = @aggregate.inject(:+) + 0.0 # Sum elements and make it a float
     if total_sum == 0
-      @d.stroke_width(@pie_radius)
+      @d.stroke_width(2)
       @d = @d.stroke "#FFFFFF"
-      @d = @d.ellipse(@pie_center_x, @pie_center_y,
-                  @pie_radius / 2.0, @pie_radius / 2.0,
-               -5, 360 + 1.0) # <= +0.5 'fudge factor' gets rid of the ugly gaps
+      @d = @d.fill "#000000"
+      start_x, start_y = @pie_center_x + @pie_radius, @pie_center_y - @pie_radius
+      end_x, end_y = @pie_center_x - @pie_radius, @pie_center_y + @pie_radius
+      @d = @d.arc(start_x, start_y, end_x, end_y, 0, 360)
       @d.draw(@base_image)
       # If we don't refresh draw, future "@d.draw(@base_image)" will redraw the circle,
       # overlapping on the text written below
       @d = Draw.new
-      insert_text(@pie_center_x - 30, @pie_center_y, "(No Data)",
-        @label_hash.merge({'fill'=> '#000000', 'font_weight'=> 700 }))
+      insert_text(@pie_center_x - 30, @pie_center_y, "No Data",
+        @label_hash.merge({'fill'=> '#FFFFFF', 'font_weight'=> 700 }))
       return
     end
     if @data.size > 0
